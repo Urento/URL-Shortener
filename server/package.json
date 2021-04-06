@@ -1,0 +1,18 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^14.14.37",
+    "eslint": "^7.23.0",
+    "nodemon": "^2.0.7",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
+  },
+  "scripts": {
+    "watch": "tsc -w",
+    "start": "node dist/index.js",
+    "dev": "nodemon dist/index.js"
+  }
+}
