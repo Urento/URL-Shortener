@@ -1,27 +1,31 @@
 import redis from "../db/redis";
+import * as express from "express";
 require("dotenv-safe").config();
 
-export default class Shortener {
-  generateId(length: number) {
-    var result = [];
-    var characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    var charactersLength = characters.length;
-    for (var i = 0; i < length; i++) {
-      result.push(
-        characters.charAt(Math.floor(Math.random() * charactersLength))
-      );
-    }
-    return result.join("");
+const generateId = (length: number) => {
+  var result = [];
+  var characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  var charactersLength = characters.length;
+  for (var i = 0; i < length; i++) {
+    result.push(
+      characters.charAt(Math.floor(Math.random() * charactersLength))
+    );
   }
+  return result.join("");
+};
 
-  async create(url: string) {
-    const id = this.generateId(process.env.URL_ID_LENGTH);
-    redis.redis.set(id, url);
-    return id;
-  }
+exports.create = async function (req: express.Request, res: express.Response) {
+  const id = generateId(process.env.URL_ID_LENGTH);
+  await redis.redis.set(id, req.body.url);
+  res.status(200).send({ message: "Successfully created", id: id });
+};
 
-  async getURL(id: string) {
-    return await redis.redis.get(id);
+exports.getURL = async function (req: express.Request, res: express.Response) {
+  const r = await redis.redis.get(req.body.id);
+  if (r === null) {
+    res.status(400).send({ message: "Not Able to find URL" });
+  } else {
+    res.status(200).send({ url: await redis.redis.get(req.body.id) });
   }
-}
+};
