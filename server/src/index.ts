@@ -1,6 +1,7 @@
 import express from "express";
 import redis from "./db/redis";
 import bodyParser from "body-parser";
+import cors from "cors";
 require("dotenv-safe").config();
 
 const main = async () => {
@@ -9,9 +10,11 @@ const main = async () => {
   const app = express();
   const port = process.env.SERVER_PORT;
 
+  app.set("trust proxy", true);
+  app.use(cors());
   app.use(bodyParser.urlencoded({ extended: false }));
 
-  var shortenerRoutes = require("./routes/shortener.route");
+  const shortenerRoutes = require("./routes/shortener.route");
   shortenerRoutes(app);
 
   app.listen(port, () => console.log(`Listening on Port ${port}`));
