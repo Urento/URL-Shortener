@@ -4,5 +4,6 @@ declare namespace NodeJS {
     REDIS_PASSWORD: string;
     URL_ID_LENGTH: number;
     SERVER_PORT: number;
+    ENCRYPTION_KEY: string;
   }
 }

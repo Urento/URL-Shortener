@@ -7,13 +7,14 @@ const main = async () => {
   redis;
 
   const app = express();
+  const port = process.env.SERVER_PORT;
 
   app.use(bodyParser.urlencoded({ extended: false }));
 
   var shortenerRoutes = require("./routes/shortener.route");
   shortenerRoutes(app);
 
-  app.listen(process.env.SERVER_PORT);
+  app.listen(port, () => console.log(`Listening on Port ${port}`));
 };
 
 main().catch((err) => console.error(err));

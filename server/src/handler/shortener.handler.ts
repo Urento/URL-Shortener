@@ -1,6 +1,10 @@
 import redis from "../db/redis";
 import * as express from "express";
+import crypto from "crypto";
 require("dotenv-safe").config();
+
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const IV_LENGTH = 16;
 
 const generateId = (length: number) => {
   var result = [];
@@ -28,14 +32,62 @@ const validURL = (str: string) => {
   return !!pattern.test(str);
 };
 
+const encrypt = (text: string) => {
+  let iv = crypto.randomBytes(IV_LENGTH);
+  let cipher = crypto.createCipheriv(
+    "aes-256-cbc",
+    Buffer.from(ENCRYPTION_KEY),
+    iv
+  );
+  let encrypted = cipher.update(text);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return iv.toString("hex") + ":" + encrypted.toString("hex");
+};
+
+const checkIfExists = async (url: string) => {
+  const r = await redis.redis.exists(url);
+  // true / 1 = exists
+  // false / 0 = not existant
+  return r.toString() === "0" ? false : true;
+};
+
 exports.create = async function (req: express.Request, res: express.Response) {
   const id = generateId(process.env.URL_ID_LENGTH);
-  if (!validURL(req.body.url)) {
+  const url = req.body.url;
+
+  // check if URL is valid
+  if (!validURL(url)) {
     res.status(400).send({ message: "URL not valid" });
     return;
   }
-  await redis.redis.set(id, req.body.url);
-  res.status(200).send({ message: "Successfully created", id: id });
+
+  if (await checkIfExists(url)) {
+    const idRedis = await redis.redis.get(url);
+    res.status(200).send({ id: idRedis });
+    return;
+  }
+
+  //TODO: Make this more elegant to check for existing urls
+  await redis.redis.set(url, id);
+  // encrypt url and send to redis
+  await redis.redis.set(id, encrypt(url));
+  res.status(200).send({ id: id });
+};
+
+const decrypt = (text: string) => {
+  let textParts = text.split(":");
+  let iv = Buffer.from(textParts.shift()!, "hex");
+  let encryptedText = Buffer.from(textParts.join(":"), "hex");
+
+  let decipher = crypto.createDecipheriv(
+    "aes-256-cbc",
+    Buffer.from(ENCRYPTION_KEY),
+    iv
+  );
+  let decrypted = decipher.update(encryptedText);
+
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+  return decrypted.toString();
 };
 
 exports.getURL = async function (req: express.Request, res: express.Response) {
@@ -43,6 +95,6 @@ exports.getURL = async function (req: express.Request, res: express.Response) {
   if (r === null) {
     res.status(400).send({ message: "Not Able to find URL" });
   } else {
-    res.status(200).send({ url: await redis.redis.get(req.body.id) });
+    res.status(200).send({ url: decrypt(r) });
   }
 };
