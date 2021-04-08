@@ -45,7 +45,7 @@ const encrypt = (text: string) => {
 };
 
 const checkIfExists = async (url: string) => {
-  const r = await redis.redis.exists(url);
+  const r = await redis.redis.exists(`url:${url}`);
   // true / 1 = exists
   // false / 0 = not existant
   return r.toString() === "0" ? false : true;
@@ -57,20 +57,20 @@ exports.create = async function (req: express.Request, res: express.Response) {
 
   // check if URL is valid
   if (!validURL(url)) {
-    res.status(400).send({ message: "URL not valid" });
+    res.status(400).send({ error: true, message: "URL not valid" });
     return;
   }
 
   if (await checkIfExists(url)) {
-    const idRedis = await redis.redis.get(url);
-    res.status(200).send({ id: idRedis });
+    const idFromRedis = await redis.redis.get(url);
+    res.status(200).send({ id: idFromRedis });
     return;
   }
 
   //TODO: Make this more elegant to check for existing urls
-  await redis.redis.set(url, id);
+  await redis.redis.set(`url:${url}`, id);
   // encrypt url and send to redis
-  await redis.redis.set(id, encrypt(url));
+  await redis.redis.set(`id:${id}`, encrypt(url));
   res.status(200).send({ id: id });
 };
 
@@ -91,9 +91,9 @@ const decrypt = (text: string) => {
 };
 
 exports.getURL = async function (req: express.Request, res: express.Response) {
-  const r = await redis.redis.get(req.body.id);
+  const r = await redis.redis.get(`id:${req.body.id}`);
   if (r === null) {
-    res.status(400).send({ message: "Not Able to find URL" });
+    res.status(400).send({ error: true, message: "Not Able to find URL" });
   } else {
     res.status(200).send({ url: decrypt(r) });
   }
