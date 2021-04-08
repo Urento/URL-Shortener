@@ -10,9 +10,19 @@ const main = async () => {
   const app = express();
   const port = process.env.SERVER_PORT;
 
+  const requestLogger = (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.log(`${req.method} ${req.path}  ${res.statusCode}`);
+    next();
+  };
+
   app.set("trust proxy", true);
   app.use(cors());
   app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(requestLogger);
 
   const shortenerRoutes = require("./routes/shortener.route");
   shortenerRoutes(app);
