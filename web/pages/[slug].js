@@ -1,3 +1,9 @@
 function Redirect({ id }) {
-  return <></>;
+  return (
+    <>
+      <a>dfg</a>
+    </>
+  );
 }
+
+export default Redirect;

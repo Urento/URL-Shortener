@@ -8,23 +8,17 @@ export default function Home() {
         <h1 className={styles.title}>
           <a>URL Shortener</a>
         </h1>
-
-        <p className={styles.description}>
-          Get started by editing{" "}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
         <div className={styles.grid}></div>
       </main>
 
       <footer className={styles.footer}>
         <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+          href="https://github.com/Urento/URL-Shortener"
           target="_blank"
           rel="noopener noreferrer"
         >
           <img
-            src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png"
+            src="/github_logo.png"
             alt="Vercel Logo"
             className={styles.logo}
           />
