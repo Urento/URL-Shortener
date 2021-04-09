@@ -1,5 +1,6 @@
-import Head from "next/head";
+import swal from "sweetalert";
 import styles from "../styles/Home.module.css";
+import copy from "copy-to-clipboard";
 
 export default function Home() {
   const shortenURL = async (event) => {
@@ -15,12 +16,28 @@ export default function Home() {
         body: JSON.stringify({ url: event.target.url.value }),
       }
     );
-    console.log(res.body.url);
-
-    // handle errors from api
 
     const r = await res.json();
-    console.log(r);
+    if (res.status === 400) {
+      swal("Hello world!");
+    } else {
+      const shortenedURL = `${process.env.NEXT_PUBLIC_HTTP_OR_HTTPS}://${process.env.NEXT_PUBLIC_API_DOMAIN}/${r.id}`;
+      swal({
+        title: "Your URL was Successfully shortened!",
+        text: shortenedURL,
+        icon: "success",
+        buttons: {
+          copy: "Copy to Clipboard",
+          ok: true,
+        },
+      })
+        .then((value) => {
+          if (value === "copy") copy(shortenedURL);
+        })
+        .catch((err) => {
+          if (err) console.error(err);
+        });
+    }
   };
 
   return (
