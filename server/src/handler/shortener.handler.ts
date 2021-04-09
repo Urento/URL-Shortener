@@ -52,7 +52,6 @@ const checkIfExists = async (url: string) => {
 };
 
 exports.create = async function (req: express.Request, res: express.Response) {
-  const id = generateId(process.env.URL_ID_LENGTH);
   const url = req.body.url;
 
   // check if URL is valid
@@ -62,11 +61,12 @@ exports.create = async function (req: express.Request, res: express.Response) {
   }
 
   if (await checkIfExists(url)) {
-    const idFromRedis = await redis.redis.get(url);
+    const idFromRedis = await redis.redis.get(`url:${url}`);
     res.status(200).send({ id: idFromRedis });
     return;
   }
 
+  const id = await generateId(process.env.URL_ID_LENGTH);
   //TODO: Make this more elegant to check for existing urls
   await redis.redis.set(`url:${url}`, id);
   // encrypt url and send to redis

@@ -22,6 +22,7 @@ const main = async () => {
   app.set("trust proxy", true);
   app.use(cors());
   app.use(bodyParser.urlencoded({ extended: false }));
+  app.use(bodyParser.json());
   app.use(requestLogger);
 
   const shortenerRoutes = require("./routes/shortener.route");
