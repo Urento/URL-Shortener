@@ -1,0 +1,3 @@
+function Redirect({ id }) {
+  return <></>;
+}
