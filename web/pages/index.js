@@ -1,8 +1,16 @@
 import swal from "sweetalert";
 import styles from "../styles/Home.module.css";
 import copy from "copy-to-clipboard";
+import UrlsTable from "./components/UrlsTable";
 
 export default function Home() {
+  const addToLocalstorage = async (url) => {
+    const curr = localStorage.getItem("shortenedUrls");
+    let s = [];
+    s.push(curr != null ? curr + "," + url : url);
+    localStorage.setItem("shortenedUrls", s);
+  };
+
   const shortenURL = async (event) => {
     event.preventDefault();
 
@@ -33,6 +41,7 @@ export default function Home() {
         });
     } else {
       const shortenedURL = `${process.env.NEXT_PUBLIC_HTTP_OR_HTTPS}://${process.env.NEXT_PUBLIC_API_DOMAIN}/${r.id}`;
+      addToLocalstorage(shortenedURL);
       swal({
         title: "Your URL was Successfully shortened!",
         text: shortenedURL,
@@ -68,6 +77,7 @@ export default function Home() {
             />
             <button type="submit">Shorten</button>
           </form>
+          <UrlsTable />
         </div>
       </main>
 
