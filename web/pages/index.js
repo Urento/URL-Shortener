@@ -19,7 +19,18 @@ export default function Home() {
 
     const r = await res.json();
     if (res.status === 400) {
-      swal("Hello world!");
+      swal({
+        title: "Error while shortening your URL!",
+        text: r.message,
+        icon: "error",
+        button: "Try Again!",
+      })
+        .then((value) => {
+          if (value === "copy") copy(shortenedURL);
+        })
+        .catch((err) => {
+          if (err) console.error(err);
+        });
     } else {
       const shortenedURL = `${process.env.NEXT_PUBLIC_HTTP_OR_HTTPS}://${process.env.NEXT_PUBLIC_API_DOMAIN}/${r.id}`;
       swal({
@@ -43,16 +54,15 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          <a>URL Shortener</a>
-        </h1>
+        <h1 className={styles.title}>URL Shortener</h1>
         <div className={styles.grid}>
           <form onSubmit={shortenURL}>
-            <label htmlFor="url">Name</label>
+            <label htmlFor="url">URL</label>
             <input
               id="url"
               name="url"
               type="text"
+              placeholder="https://github.com/urento"
               autoComplete="url"
               required
             />

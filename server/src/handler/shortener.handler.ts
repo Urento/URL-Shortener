@@ -56,7 +56,7 @@ exports.create = async function (req: express.Request, res: express.Response) {
 
   // check if URL is valid
   if (!validURL(url)) {
-    res.status(400).send({ error: true, message: "URL not valid" });
+    res.status(400).send({ error: true, message: "URL is not valid" });
     return;
   }
 
@@ -91,7 +91,7 @@ const decrypt = (text: string) => {
 };
 
 exports.getURL = async function (req: express.Request, res: express.Response) {
-  const r = await redis.redis.get(`id:${req.body.id}`);
+  const r = await redis.redis.get(`id:${req.params.id}`);
   if (r === null) {
     res.status(400).send({ error: true, message: "Not Able to find URL" });
   } else {
