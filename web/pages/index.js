@@ -1,3 +1,4 @@
+import Head from "next/head";
 import swal from "sweetalert";
 import styles from "../styles/Home.module.css";
 import copy from "copy-to-clipboard";
@@ -62,6 +63,9 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
+      <Head>
+        <title>URL-Shortener</title>
+      </Head>
       <main className={styles.main}>
         <h1 className={styles.title}>URL Shortener</h1>
         <div className={styles.grid}>
