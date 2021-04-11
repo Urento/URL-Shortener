@@ -2,20 +2,6 @@ import { useRouter } from "next/router";
 import React from "react";
 import { GetServerSideProps } from "next";
 
-const fetchURL = async (slug) => {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_HTTP_OR_HTTPS}://${process.env.NEXT_PUBLIC_API_DOMAIN}:${process.env.NEXT_PUBLIC_API_PORT}/${slug}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  const r = res.json();
-  return res.url;
-};
-
 const Redirect = () => {
   return null;
 };
