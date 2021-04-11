@@ -6,10 +6,13 @@ import UrlsTable from "./components/UrlsTable";
 
 export default function Home() {
   const addToLocalstorage = async (url) => {
-    const curr = localStorage.getItem("shortenedUrls");
-    let s = [];
-    s.push(curr != null ? curr + "," + url : url);
-    localStorage.setItem("shortenedUrls", s);
+    var existingEntries = JSON.parse(localStorage.getItem("shortenedUrls"));
+    if (existingEntries == null) existingEntries = [];
+    var entry = {
+      url: url,
+    };
+    existingEntries.push(entry);
+    localStorage.setItem("shortenedUrls", JSON.stringify(existingEntries));
   };
 
   const shortenURL = async (event) => {

@@ -6,3 +6,4 @@
 - Improve Connecting
 - Docker Image
 - Show your own already created short urls
+- Style
