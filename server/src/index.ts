@@ -14,6 +14,7 @@ const requestLogger = (
 };
 
 const main = async () => {
+  // create redis connection
   redis;
 
   const app = express();

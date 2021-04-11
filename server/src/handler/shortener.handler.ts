@@ -44,6 +44,11 @@ const encrypt = (text: string) => {
   return iv.toString("hex") + ":" + encrypted.toString("hex");
 };
 
+/**
+ * Check if the URL was already shortened
+ * @param url
+ * @returns true = exists; false = does not already exists and needs to be created
+ */
 const checkIfExists = async (url: string) => {
   const r = await redis.redis.exists(`url:${url}`);
   // true / 1 = exists
@@ -51,6 +56,10 @@ const checkIfExists = async (url: string) => {
   return r.toString() === "0" ? false : true;
 };
 
+/**
+ * Create a Redis Entry with the encrypted shortened URL and validate if it actually is an url
+ * Create an extra entry to later check if the url already exists to avoid duplication
+ */
 exports.create = async function (req: express.Request, res: express.Response) {
   const url = req.body.url;
 
@@ -60,6 +69,7 @@ exports.create = async function (req: express.Request, res: express.Response) {
     return;
   }
 
+  // check if url was already shortened
   if (await checkIfExists(url)) {
     const idFromRedis = await redis.redis.get(`url:${url}`);
     res.status(200).send({ id: idFromRedis });
@@ -90,6 +100,9 @@ const decrypt = (text: string) => {
   return decrypted.toString();
 };
 
+/**
+ * Get the actual URL from the Data and decrypt it
+ */
 exports.getURL = async function (req: express.Request, res: express.Response) {
   const r = await redis.redis.get(`id:${req.params.id}`);
   if (r === null) {

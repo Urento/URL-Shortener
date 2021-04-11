@@ -14,7 +14,6 @@ export default class UrlsTable extends React.Component {
       "shortenedUrls"
     );
     this.setState({ loading: false });
-    console.log(this.state.urlsFromLocalStorage);
   }
 
   clearUrls = async () => {
