@@ -1,8 +1,14 @@
-import Redis from "ioredis";
+import Redis from "redis";
 require("dotenv-safe").config();
-var redis = new Redis({
+
+const redisClientOptions = {
   host: process.env.REDIS_HOST,
   password: process.env.REDIS_PASSWORD,
+};
+var redis = Redis.createClient(redisClientOptions);
+
+redis.on("error", (err) => {
+  console.error(err);
 });
 
 export default {

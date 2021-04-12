@@ -71,8 +71,15 @@ exports.create = async function (req: express.Request, res: express.Response) {
 
   // check if url was already shortened
   if (await checkIfExists(url)) {
-    const idFromRedis = await redis.redis.get(`url:${url}`);
-    res.status(200).send({ id: idFromRedis });
+    await redis.redis.get(`url:${url}`, (err, reply) => {
+      if (err) res.status(400).send({ error: true, message: err.message });
+      if (reply === null)
+        res
+          .status(400)
+          .send({ error: true, message: "Error while getting the URL" });
+
+      res.status(200).send({ id: reply });
+    });
     return;
   }
 
@@ -104,10 +111,11 @@ const decrypt = (text: string) => {
  * Get the actual URL from the Data and decrypt it
  */
 exports.getURL = async function (req: express.Request, res: express.Response) {
-  const r = await redis.redis.get(`id:${req.params.id}`);
-  if (r === null) {
-    res.status(400).send({ error: true, message: "Not Able to find URL" });
-  } else {
-    res.status(200).send({ url: decrypt(r) });
-  }
+  await redis.redis.get(`id:${req.params.id}`, (err, reply) => {
+    if (err)
+      res.status(400).send({ error: true, message: "Not Able to find URL" });
+    if (reply === null)
+      res.status(400).send({ error: true, message: "Not Able to find URL" });
+    res.status(200).send({ url: decrypt(reply!) });
+  });
 };
