@@ -98,9 +98,9 @@ exports.create = async function (req: express.Request, res: express.Response) {
 
   const id = await generateId(process.env.URL_ID_LENGTH);
   //TODO: Make this more elegant to check for existing urls
-  !(await check) && (await redis.redis.set(`url:${url}`, id));
+  await redis.redis.set(`url:${url}`, id);
   // encrypt url and send to redis
-  !(await check) && (await redis.redis.set(`id:${id}`, encrypt(url)));
+  await redis.redis.set(`id:${id}`, encrypt(url));
   res.status(200).send({ id: id });
 };
 
