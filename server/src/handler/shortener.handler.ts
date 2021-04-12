@@ -50,10 +50,14 @@ const encrypt = (text: string) => {
  * @returns true = exists; false = does not already exists and needs to be created
  */
 const checkIfExists = async (url: string) => {
-  const r = await redis.redis.exists(`url:${url}`);
-  // true / 1 = exists
-  // false / 0 = not existant
-  return r.toString() === "0" ? false : true;
+  return await redis.redis.exists(`url:${url}`, (err, reply) => {
+    console.log("reply: " + reply);
+    if (err) {
+      console.error(err);
+      return 0;
+    }
+    return reply;
+  });
 };
 
 /**
@@ -61,7 +65,7 @@ const checkIfExists = async (url: string) => {
  * Create an extra entry to later check if the url already exists to avoid duplication
  */
 exports.create = async function (req: express.Request, res: express.Response) {
-  const url = req.body.url;
+  const url: string = req.body.url;
 
   // check if URL is valid
   if (!validURL(url)) {
@@ -69,25 +73,34 @@ exports.create = async function (req: express.Request, res: express.Response) {
     return;
   }
 
+  const check = await checkIfExists(url);
+
   // check if url was already shortened
-  if (await checkIfExists(url)) {
+  /*if (await check) {
     await redis.redis.get(`url:${url}`, (err, reply) => {
-      if (err) res.status(400).send({ error: true, message: err.message });
-      if (reply === null)
-        res
-          .status(400)
-          .send({ error: true, message: "Error while getting the URL" });
+      console.log("reply: " + reply);
+      if (err) {
+        res.status(400).send({ error: true, message: err.message });
+        return;
+      }
+      if (reply === null) {
+        res.status(400).send({
+          error: true,
+          message:
+            "URL from the Database was null. Please contact a Server Administrator",
+        });
+        return;
+      }
 
       res.status(200).send({ id: reply });
     });
-    return;
-  }
+  }*/
 
   const id = await generateId(process.env.URL_ID_LENGTH);
   //TODO: Make this more elegant to check for existing urls
-  await redis.redis.set(`url:${url}`, id);
+  !(await check) && (await redis.redis.set(`url:${url}`, id));
   // encrypt url and send to redis
-  await redis.redis.set(`id:${id}`, encrypt(url));
+  !(await check) && (await redis.redis.set(`id:${id}`, encrypt(url)));
   res.status(200).send({ id: id });
 };
 
