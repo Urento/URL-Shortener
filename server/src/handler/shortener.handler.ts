@@ -45,22 +45,6 @@ const encrypt = (text: string) => {
 };
 
 /**
- * Check if the URL was already shortened
- * @param url
- * @returns true = exists; false = does not already exists and needs to be created
- */
-const checkIfExists = async (url: string) => {
-  return await redis.redis.exists(`url:${url}`, (err, reply) => {
-    console.log("reply: " + reply);
-    if (err) {
-      console.error(err);
-      return 0;
-    }
-    return reply;
-  });
-};
-
-/**
  * Create a Redis Entry with the encrypted shortened URL and validate if it actually is an url
  * Create an extra entry to later check if the url already exists to avoid duplication
  */
@@ -73,35 +57,47 @@ exports.create = async function (req: express.Request, res: express.Response) {
     return;
   }
 
-  const check = await checkIfExists(url);
-
-  // check if url was already shortened
-  /*if (await check) {
-    await redis.redis.get(`url:${url}`, (err, reply) => {
-      console.log("reply: " + reply);
-      if (err) {
-        res.status(400).send({ error: true, message: err.message });
+  redis.redis.exists(`url:${url}`, (err, exists) => {
+    if (err) {
+      res.status(400).send({
+        error: true,
+        message: err.message,
+      });
+      console.log(err);
+      return;
+    }
+    if (exists === null) {
+      res.status(400).send({
+        error: true,
+        message:
+          "URL from the Database was null. Please contact a Server Administrator",
+      });
+      return;
+    }
+    if (!exists) {
+      const id = generateId(process.env.URL_ID_LENGTH);
+      //TODO: Make this more elegant to check for existing urls
+      redis.redis.set(`url:${url}`, id);
+      // encrypt url and send to redis
+      redis.redis.set(`id:${id}`, encrypt(url));
+      res.status(200).send({ id: id });
+    } else {
+      redis.redis.get(`url:${url}`, (err, reply) => {
+        if (err || reply === null) {
+          if (err !== null) console.error(err);
+          res.status(400).send({
+            error: true,
+            message:
+              "URL from the Database was null. Please contact a Server Administrator",
+          });
+          return;
+        }
+        res.status(200).send({ id: reply });
         return;
-      }
-      if (reply === null) {
-        res.status(400).send({
-          error: true,
-          message:
-            "URL from the Database was null. Please contact a Server Administrator",
-        });
-        return;
-      }
-
-      res.status(200).send({ id: reply });
-    });
-  }*/
-
-  const id = await generateId(process.env.URL_ID_LENGTH);
-  //TODO: Make this more elegant to check for existing urls
-  await redis.redis.set(`url:${url}`, id);
-  // encrypt url and send to redis
-  await redis.redis.set(`id:${id}`, encrypt(url));
-  res.status(200).send({ id: id });
+      });
+    }
+    //return exists === 0 ? false : true;
+  });
 };
 
 const decrypt = (text: string) => {
@@ -124,7 +120,7 @@ const decrypt = (text: string) => {
  * Get the actual URL from the Data and decrypt it
  */
 exports.getURL = async function (req: express.Request, res: express.Response) {
-  await redis.redis.get(`id:${req.params.id}`, (err, reply) => {
+  redis.redis.get(`id:${req.params.id}`, (err, reply) => {
     if (err)
       res.status(400).send({ error: true, message: "Not Able to find URL" });
     if (reply === null)
